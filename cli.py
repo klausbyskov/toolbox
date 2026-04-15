@@ -10,6 +10,7 @@ PROD_SECRETS = {
     "PROD_HOST": "167.86.90.67",
     "PROD_USERNAME": "root",
     "PROD_SSH_KEY": (Path.home() / ".ssh" / "id_rsa").read_text,
+    "ADMIN_GOOGLE_CLIENT_ID": "94341717233-4subu64rleer1e2klsbrhj5g5jee58vm.apps.googleusercontent.com",
 }
 
 
@@ -37,19 +38,31 @@ def cmd_secrets_set(gh, args):
     print("Done.")
 
 
-def cmd_secrets_google(gh, args):
+def _prompt_and_set(gh, args, secret_name, subcommand):
     if not args:
-        print("Usage: python cli.py secrets google <repo>")
+        print(f"Usage: python cli.py secrets {subcommand} <repo>")
         sys.exit(1)
     repo = args[0]
-    value = input("NEXT_PUBLIC_GOOGLE_CLIENT_ID: ").strip()
+    value = input(f"{secret_name}: ").strip()
     if not value:
         print("Aborted.")
         sys.exit(1)
     print(f"Setting secret on {repo}:")
-    gh.set_secret(repo, "NEXT_PUBLIC_GOOGLE_CLIENT_ID", value)
-    print("  NEXT_PUBLIC_GOOGLE_CLIENT_ID ok")
+    gh.set_secret(repo, secret_name, value)
+    print(f"  {secret_name} ok")
     print("Done.")
+
+
+def cmd_secrets_google(gh, args):
+    _prompt_and_set(gh, args, "NEXT_PUBLIC_GOOGLE_CLIENT_ID", "google")
+
+
+def cmd_secrets_ga(gh, args):
+    _prompt_and_set(gh, args, "NEXT_PUBLIC_GA_MEASUREMENT_ID", "ga")
+
+
+def cmd_secrets_cookiebar(gh, args):
+    _prompt_and_set(gh, args, "NEXT_PUBLIC_COOKIEBAR_SITE_ID", "cb")
 
 
 def pick_repo(gh):
@@ -112,6 +125,8 @@ COMMANDS = {
     "repos list": cmd_repos_list,
     "secrets set": cmd_secrets_set,
     "secrets google": cmd_secrets_google,
+    "secrets ga": cmd_secrets_ga,
+    "secrets cb": cmd_secrets_cookiebar,
     "create": cmd_create,
     "setup": cmd_setup,
     "list": cmd_list,
@@ -136,6 +151,8 @@ def main():
         print("  repos list             List your GitHub repositories")
         print("  secrets set <repo>     Set prod secrets on a repo")
         print("  secrets google <repo>  Set NEXT_PUBLIC_GOOGLE_CLIENT_ID")
+        print("  secrets ga <repo>      Set NEXT_PUBLIC_GA_MEASUREMENT_ID")
+        print("  secrets cb <repo>      Set NEXT_PUBLIC_COOKIEBAR_SITE_ID")
         print("  create                 Create private repo, set secrets, clone to C:\\src")
         print("  setup [repo]           Register repo details (domain, local dir)")
         print("  list                   List registered repos")
